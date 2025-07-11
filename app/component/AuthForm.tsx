@@ -56,10 +56,10 @@ export default function AuthForm({ type }: { type: "signin" | "signup" }) {
           toast.success("User signed up successfully");
           router.push("/signin");
         }
-      } catch (error: any) {
+      } catch (error) {
         setLoading(false);
         toast.dismiss(loadingToast);
-        toast.error(error?.response?.data?.message || error?.message || "Sign up failed");
+        toast.error("Sign up failed");
         console.error(error);
       }
     }
@@ -137,7 +137,7 @@ export default function AuthForm({ type }: { type: "signin" | "signup" }) {
           <p className="text-slate-400">
             {type === "signin" ? (
               <>
-                Don't have an account? <Link href="/signup" className="text-amber-400 underline">Sign Up</Link>
+                Don&apos;t have an account? <Link href="/signup" className="text-amber-400 underline">Sign Up</Link>
               </>
             ) : (
               <>

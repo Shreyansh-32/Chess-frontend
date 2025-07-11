@@ -4,7 +4,7 @@ import { Session } from "next-auth";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
-export default function ({session} : {session : Session | null
+export default function PlayNowButton ({session} : {session : Session | null
 }) {
     const router = useRouter();
   return (

@@ -36,9 +36,7 @@ export default function GameComponent({ session }: { session: Session | null }) 
         setChess(new Chess());
         setStarted(true);
         setMyColor(message.payload.color === "white" ? "w" : "b");
-        message.payload.color === "white"
-          ? setBoard(chess.board())
-          : setBoard(chess.board().reverse());
+        setBoard(message.payload.color === "white" ? chess.board() : chess.board().reverse());
         setLoading(false);
         setWinner(null);
         setPlayer1Time(10 * 60 * 1000);
@@ -49,9 +47,7 @@ export default function GameComponent({ session }: { session: Session | null }) 
 
       if (message.type === MOVE) {
         chess.move(message.payload.move);
-        myColor === "w"
-          ? setBoard(chess.board())
-          : setBoard(chess.board().reverse());
+        setBoard(message.payload.color === "white" ? chess.board() : chess.board().reverse());
         setPlayer1Time(parseInt(message.payload.player1TimeLeft));
         setPlayer2Time(parseInt(message.payload.player2TimeLeft));
         setGameHistory(message.payload.gameHistory);
@@ -70,9 +66,7 @@ export default function GameComponent({ session }: { session: Session | null }) 
 
       if (message.type === "live_game") {
         chess.load(message.payload.board);
-        message.payload.color === "w"
-          ? setBoard(chess.board())
-          : setBoard(chess.board().reverse());
+        setBoard(message.payload.color === "white" ? chess.board() : chess.board().reverse());
         setStarted(true);
         setMyColor(message.payload.color);
         setLoading(false);

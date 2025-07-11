@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import React from 'react';
 import { authOptions } from './lib/authOptions';
 import PlayNowButton from './component/PlayNowButton';
+import Image from 'next/image';
 
 const ChessLandingPage = async() => {
 
@@ -13,9 +14,11 @@ const ChessLandingPage = async() => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="flex justify-center">
             <div className="relative">
-              <img 
+              <Image 
                 src="https://images.unsplash.com/photo-1586165368502-1bad197a6461?w=400&h=400&fit=crop&crop=center"
                 alt="Chess board with pieces"
+                width={100}
+                height={100}
                 className="w-80 h-80 object-cover rounded-lg shadow-2xl border-4 border-amber-600"
               />
               <div className="absolute inset-0 bg-amber-400 opacity-20 blur-xl -z-10 rounded-lg"></div>

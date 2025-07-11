@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Chess",
   icons:{
-    icon : "/favicon.png"
+    icon:[{ url: "/favicon.png", type: "image/png" }]
   }
 };
 
@@ -27,6 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

@@ -57,7 +57,7 @@ export default function ChessBoard({
                 {myColor === "w" ? formatTime(player2Time) : formatTime(player1Time)}
             </div>
 
-            {myColor === "w" && board.map((row, i) => (
+            {myColor === "w" && board.reverse().map((row, i) => (
                 <div key={i} className="flex">
                     {row.map((square, j) => {
                         const toSquare = `${String.fromCharCode(97 + j)}${8 - i}`;

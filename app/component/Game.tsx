@@ -41,8 +41,8 @@ export default function GameComponent({ session }: { session: Session | null }) 
           : setBoard(chess.board().reverse());
         setLoading(false);
         setWinner(null);
-        setPlayer1Time(5 * 60 * 1000);
-        setPlayer2Time(5 * 60 * 1000);
+        setPlayer1Time(10 * 60 * 1000);
+        setPlayer2Time(10 * 60 * 1000);
         setGameHistory(undefined);
         new Audio("/GameOver.mp3").play();
       }

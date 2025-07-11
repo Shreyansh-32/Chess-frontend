@@ -25,7 +25,7 @@ export default function ChessBoard({
         return `${minutes}:${seconds}`;
     };
 
-    const isSelected = (square: Square | null) => from === square;
+    const isSelected = (square: Square | undefined) => from === square;
 
     const handleClick = (toSquare: Square) => {
         if (chess.turn() !== myColor) return;

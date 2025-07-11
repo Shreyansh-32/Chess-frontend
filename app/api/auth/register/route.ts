@@ -1,4 +1,4 @@
-import { prisma } from "@/app/lib/prisma";
+import prisma from "@/app/lib/prisma";
 import { userSchema } from "@/app/lib/schema";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";

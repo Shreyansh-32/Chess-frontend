@@ -20,8 +20,8 @@ export default function GameComponent({ session }: { session: Session | null }) 
   const [myColor, setMyColor] = useState<Color>("w");
   const [loading, setLoading] = useState(false);
   const [winner, setWinner] = useState<"draw" | "white" | "black" | null>(null);
-  const [player1Time, setPlayer1Time] = useState<number>(5 * 60 * 1000);
-  const [player2Time, setPlayer2Time] = useState<number>(5 * 60 * 1000);
+  const [player1Time, setPlayer1Time] = useState<number>(10 * 60 * 1000);
+  const [player2Time, setPlayer2Time] = useState<number>(10 * 60 * 1000);
   const [gameHistory, setGameHistory] = useState<string[] | undefined>();
   const socket = useSocket();
   const router = useRouter();

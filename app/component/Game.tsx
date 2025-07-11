@@ -26,6 +26,11 @@ export default function GameComponent({ session }: { session: Session | null }) 
   const socket = useSocket();
   const router = useRouter();
 
+  const getBoardForColor = (chessInstance: Chess, color: Color) => {
+    const boardArray = chessInstance.board();
+    return color === "w" ? boardArray : [...boardArray].reverse();
+  };
+
   useEffect(() => {
     if (!socket) return;
 
@@ -33,43 +38,56 @@ export default function GameComponent({ session }: { session: Session | null }) 
       const message = JSON.parse(event.data);
 
       if (message.type === INIT_GAME) {
-        setChess(new Chess());
-        setStarted(true);
+        const newChess = new Chess();
         const newColor = message.payload.color === "white" ? "w" : "b";
+        
+        setChess(newChess);
         setMyColor(newColor);
-        setBoard(newColor === "w" ? chess.board() : chess.board().reverse());
+        setBoard(getBoardForColor(newChess, newColor));
+        setStarted(true);
         setLoading(false);
         setWinner(null);
         setPlayer1Time(10 * 60 * 1000);
         setPlayer2Time(10 * 60 * 1000);
         setGameHistory(undefined);
+        
         new Audio("/GameOver.mp3").play();
       }
 
       if (message.type === MOVE) {
-        chess.move(message.payload.move);
-        setBoard(myColor === "w" ? chess.board() : chess.board().reverse());
+        const newChess = new Chess(chess.fen());
+        newChess.move(message.payload.move);
+        
+        setChess(newChess);
+        setBoard(getBoardForColor(newChess, myColor));
         setPlayer1Time(parseInt(message.payload.player1TimeLeft));
         setPlayer2Time(parseInt(message.payload.player2TimeLeft));
         setGameHistory(message.payload.gameHistory);
+        
         new Audio("/Move.mp3").play();
       }
 
       if (message.type === GAME_OVER) {
+        const newChess = new Chess();
+        
         setStarted(false);
         setWinner(message.payload.winner);
         setPlayer1Time(parseInt(message.payload.player1TimeLeft));
         setPlayer2Time(parseInt(message.payload.player2TimeLeft));
+        setChess(newChess);
+        setBoard(getBoardForColor(newChess, myColor));
+        
         new Audio("/GameOver.mp3").play();
-        setChess(new Chess());
-        setBoard(chess.board());
       }
 
       if (message.type === "live_game") {
-        chess.load(message.payload.board);
-        const newColor = message.payload.color === "w" ? "w" : "b";
+        const newChess = new Chess();
+        newChess.load(message.payload.board);
+        const newColor = message.payload.color;
+        
+        setChess(newChess);
         setMyColor(newColor);
-        setBoard(newColor === "w" ? chess.board() : chess.board().reverse());
+        setBoard(getBoardForColor(newChess, newColor));
         setStarted(true);
         setLoading(false);
         setPlayer1Time(parseInt(message.payload.player1TimeLeft));
@@ -85,7 +103,7 @@ export default function GameComponent({ session }: { session: Session | null }) 
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [socket, chess, board, myColor, started]);
+  }, [socket, chess, myColor, started]);
 
   if (!session) {
     toast.error("Sign in to play");

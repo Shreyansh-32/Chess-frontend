@@ -48,6 +48,20 @@ export default function ChessBoard({
             }
         }
     };
+    const getSquareCoordinate = (rowIndex: number, colIndex: number) => {
+        if (myColor === "w") {
+            return `${String.fromCharCode(97 + colIndex)}${8 - rowIndex}` as Square;
+        } else {
+            return `${String.fromCharCode(97 + colIndex)}${rowIndex + 1}` as Square;
+        }
+    };
+    const isLightSquare = (rowIndex: number, colIndex: number) => {
+        if (myColor === "w") {
+            return (rowIndex + colIndex) % 2 === 0;
+        } else {
+            return (rowIndex + colIndex) % 2 === 1;
+        }
+    };
 
     useEffect(() => {}, [socket, board, myColor, chess, player1Time, player2Time]);
 
@@ -56,30 +70,43 @@ export default function ChessBoard({
             <div className="bg-gray-800 px-4 py-2 w-24 text-center rounded-t-md">
                 {myColor === "w" ? formatTime(player2Time) : formatTime(player1Time)}
             </div>
-
-            {myColor === "w" && board.reverse().map((row, i) => (
-                <div key={i} className="flex">
-                    {row.map((square, j) => {
-                        const toSquare = `${String.fromCharCode(97 + j)}${8 - i}`;
-                        const isLight = (i + j) % 2 === 0;
+            {board.map((row, rowIndex) => (
+                <div key={rowIndex} className="flex">
+                    {row.map((square, colIndex) => {
+                        const squareCoordinate = getSquareCoordinate(rowIndex, colIndex);
+                        const isLight = isLightSquare(rowIndex, colIndex);
+                        const isBottomRow = rowIndex === 7;
+                        const isLeftColumn = colIndex === 0;
+                        
                         return (
                             <motion.div
                                 layout
-                                key={j}
-                                onClick={() => handleClick(toSquare as Square)}
-                                className={`md:w-14 md:h-14 lg:w-16 lg:h-16 w-12 h-12 transition-colors duration-200 ${isLight ? "bg-green-100" : "bg-green-600"} ${isSelected(square?.square) ? "ring-4 ring-yellow-400" : ""}`}
+                                key={colIndex}
+                                onClick={() => handleClick(squareCoordinate)}
+                                className={`md:w-14 md:h-14 lg:w-16 lg:h-16 w-12 h-12 transition-colors duration-200 ${
+                                    isLight ? "bg-green-100" : "bg-green-600"
+                                } ${isSelected(square?.square) ? "ring-4 ring-yellow-400" : ""}`}
                             >
                                 <div className="relative flex justify-center items-center text-black w-full h-full">
                                     {square && (
                                         <motion.div layoutId={`${square.color}${square.type}-${square.square}`}>
-                                            <Image src={`/${square.color}${square.type}.png`} alt={`${square.color}${square.type}`} width={100} height={100} />
+                                            <Image 
+                                                src={`/${square.color}${square.type}.png`} 
+                                                alt={`${square.color}${square.type}`} 
+                                                width={100} 
+                                                height={100} 
+                                            />
                                         </motion.div>
                                     )}
-                                    {i === 7 && (
-                                        <p className="absolute left-1 bottom-0.5 text-gray-700 text-xs">{String.fromCharCode(97 + j)}</p>
+                                    {isBottomRow && (
+                                        <p className="absolute left-1 bottom-0.5 text-gray-700 text-xs">
+                                            {String.fromCharCode(97 + colIndex)}
+                                        </p>
                                     )}
-                                    {j === 0 && (
-                                        <p className="absolute left-1 top-0.5 text-gray-700 text-xs">{8 - i}</p>
+                                    {isLeftColumn && (
+                                        <p className="absolute left-1 top-0.5 text-gray-700 text-xs">
+                                            {myColor === "w" ? 8 - rowIndex : rowIndex + 1}
+                                        </p>
                                     )}
                                 </div>
                             </motion.div>
@@ -87,42 +114,9 @@ export default function ChessBoard({
                     })}
                 </div>
             ))}
-
-            {myColor === "b" && board.map((row, i) => (
-                <div key={i} className="flex">
-                    {row.map((square, j) => {
-                        const toSquare = `${String.fromCharCode(97 + j)}${i + 1}`;
-                        const isLight = (i + j) % 2 === 1;
-                        return (
-                            <motion.div
-                                layout
-                                key={j}
-                                onClick={() => handleClick(toSquare as Square)}
-                                className={`md:w-14 md:h-14 lg:w-16 lg:h-16 w-12 h-12 transition-colors duration-200 ${isLight ? "bg-green-100" : "bg-green-600"} ${isSelected(square?.square) ? "ring-4 ring-yellow-400" : ""}`}
-                            >
-                                <div className="relative flex justify-center items-center text-black w-full h-full">
-                                    {square && (
-                                        <motion.div layoutId={`${square.color}${square.type}-${square.square}`}>
-                                            <Image src={`/${square.color}${square.type}.png`} alt={`${square.color}${square.type}`} width={100} height={100} />
-                                        </motion.div>
-                                    )}
-                                    {i === 7 && (
-                                        <p className="absolute left-1 bottom-0.5 text-gray-500 text-xs">{String.fromCharCode(97 + j)}</p>
-                                    )}
-                                    {j === 0 && (
-                                        <p className="absolute left-1 top-0.5 text-gray-500 text-xs">{i + 1}</p>
-                                    )}
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </div>
-            ))}
-
             <div className="bg-gray-800 px-4 py-2 rounded-b-md text-xl w-24 text-center">
-                {myColor === "b" ? formatTime(player2Time) : formatTime(player1Time)}
+                {myColor === "w" ? formatTime(player1Time) : formatTime(player2Time)}
             </div>
-
             {promotion && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white p-4 rounded-md flex gap-4">

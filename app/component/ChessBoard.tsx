@@ -2,7 +2,7 @@
 
 import { Chess, Color, PieceSymbol, Square } from "chess.js";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 export default function ChessBoard({

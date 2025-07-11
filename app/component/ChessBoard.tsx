@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 export default function ChessBoard({
-    board, socket, myColor, chess, id, player1Time, player2Time
+    board, socket, myColor, chess, id, player1Time, player2Time , player1Name , player2Name
 }: {
     board: ({ square: Square; type: PieceSymbol; color: Color } | null)[][],
     socket: WebSocket,
@@ -15,6 +15,8 @@ export default function ChessBoard({
     id: number,
     player1Time: number,
     player2Time: number,
+    player1Name : string | undefined,
+    player2Name : string | undefined
 }) {
     const [from, setFrom] = useState<Square | null>(null);
     const [promotion, setPromotion] = useState<{ from: Square; to: Square } | null>(null);
@@ -63,12 +65,13 @@ export default function ChessBoard({
         }
     };
 
-    useEffect(() => {}, [socket, board, myColor, chess, player1Time, player2Time]);
+    useEffect(() => {}, [socket, board, myColor, chess, player1Time, player2Time , player1Name , player2Name]);
 
     return (
         <div className="text-white flex flex-col text-xl rounded-md">
-            <div className="bg-gray-800 px-4 py-2 w-24 text-center rounded-t-md">
-                {myColor === "w" ? formatTime(player2Time) : formatTime(player1Time)}
+            <div className="bg-gray-800 px-4 py-2 text-center flex gap-4 rounded-t-md">
+                <h4>{myColor === "w" ? formatTime(player2Time) : formatTime(player1Time)}</h4>
+                <h4>{myColor === "w" ? String(player2Name) : String(player1Name)}</h4>  
             </div>
             {board.map((row, rowIndex) => (
                 <div key={rowIndex} className="flex">
@@ -114,8 +117,9 @@ export default function ChessBoard({
                     })}
                 </div>
             ))}
-            <div className="bg-gray-800 px-4 py-2 rounded-b-md text-xl w-24 text-center">
-                {myColor === "w" ? formatTime(player1Time) : formatTime(player2Time)}
+            <div className="bg-gray-800 px-4 py-2 rounded-b-md text-xl flex gap-4 text-center">
+                <h4>{myColor === "w" ? formatTime(player1Time) : formatTime(player2Time)}</h4>  
+                <h4>{myColor === "w" ? String(player1Name) : String(player2Name)}</h4>
             </div>
             {promotion && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

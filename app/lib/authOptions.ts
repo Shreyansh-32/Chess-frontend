@@ -39,6 +39,7 @@ export const authOptions : NextAuthOptions = {
 
               return{
                 id : user.id,
+                username : user.username
               };
           }
           catch(err){
@@ -53,6 +54,7 @@ export const authOptions : NextAuthOptions = {
     async jwt({user , token}){
       if(user){
         token.id = user.id;
+        token.username = user.username;
       }
 
       return token;
@@ -61,6 +63,7 @@ export const authOptions : NextAuthOptions = {
     async session({session , token}){
       if(session.user){
         session.user.id = token.id as number;
+        session.user.username = token.username as string;
       }
 
       return session;

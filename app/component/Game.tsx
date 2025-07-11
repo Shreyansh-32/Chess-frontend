@@ -23,6 +23,8 @@ export default function GameComponent({ session }: { session: Session | null }) 
   const [player1Time, setPlayer1Time] = useState<number>(10 * 60 * 1000);
   const [player2Time, setPlayer2Time] = useState<number>(10 * 60 * 1000);
   const [gameHistory, setGameHistory] = useState<string[] | undefined>();
+  const [player1Name , setPlayer1Name] = useState<string | undefined>();
+  const [player2Name , setPlayer2Name] = useState<string | undefined>();
   const socket = useSocket();
   const router = useRouter();
 
@@ -50,7 +52,8 @@ export default function GameComponent({ session }: { session: Session | null }) 
         setPlayer1Time(10 * 60 * 1000);
         setPlayer2Time(10 * 60 * 1000);
         setGameHistory(undefined);
-        
+        setPlayer1Name(message.payload.player1Name);
+        setPlayer2Name(message.payload.player2Name);
         new Audio("/GameOver.mp3").play();
       }
 
@@ -93,6 +96,8 @@ export default function GameComponent({ session }: { session: Session | null }) 
         setPlayer1Time(parseInt(message.payload.player1TimeLeft));
         setPlayer2Time(parseInt(message.payload.player2TimeLeft));
         setGameHistory(message.payload.gameHistory);
+        setPlayer1Name(message.payload.player1Name);
+        setPlayer2Name(message.payload.player2Name);
       }
     };
 
@@ -123,6 +128,8 @@ export default function GameComponent({ session }: { session: Session | null }) 
         socket={socket}
         player1Time={player1Time}
         player2Time={player2Time}
+        player1Name = {player1Name}
+        player2Name={player2Name}
       />
 
       <div className="md:h-[520px] md:w-[280px] w-full rounded-xl bg-gray-800 text-white shadow-lg p-4 flex flex-col gap-4 overflow-y-auto">

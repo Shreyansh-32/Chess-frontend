@@ -28,11 +28,6 @@ export default function GameComponent({ session }: { session: Session | null }) 
   const socket = useSocket();
   const router = useRouter();
 
-  const getBoardForColor = (chessInstance: Chess, color: Color) => {
-    const boardArray = chessInstance.board();
-    return color === "w" ? boardArray : [...boardArray].reverse();
-  };
-
   useEffect(() => {
     if (!socket) return;
 
@@ -45,7 +40,7 @@ export default function GameComponent({ session }: { session: Session | null }) 
         
         setChess(newChess);
         setMyColor(newColor);
-        setBoard(getBoardForColor(newChess, newColor));
+        setBoard(newChess.board());
         setStarted(true);
         setLoading(false);
         setWinner(null);
@@ -62,7 +57,7 @@ export default function GameComponent({ session }: { session: Session | null }) 
         newChess.move(message.payload.move);
         
         setChess(newChess);
-        setBoard(getBoardForColor(newChess, myColor));
+        setBoard(newChess.board());
         setPlayer1Time(parseInt(message.payload.player1TimeLeft));
         setPlayer2Time(parseInt(message.payload.player2TimeLeft));
         setGameHistory(message.payload.gameHistory);
@@ -78,7 +73,7 @@ export default function GameComponent({ session }: { session: Session | null }) 
         setPlayer1Time(parseInt(message.payload.player1TimeLeft));
         setPlayer2Time(parseInt(message.payload.player2TimeLeft));
         setChess(newChess);
-        setBoard(getBoardForColor(newChess, myColor));
+        setBoard(newChess.board());
         
         new Audio("/GameOver.mp3").play();
       }
@@ -90,7 +85,7 @@ export default function GameComponent({ session }: { session: Session | null }) 
         
         setChess(newChess);
         setMyColor(newColor);
-        setBoard(getBoardForColor(newChess, newColor));
+        setBoard(newChess.board());
         setStarted(true);
         setLoading(false);
         setPlayer1Time(parseInt(message.payload.player1TimeLeft));

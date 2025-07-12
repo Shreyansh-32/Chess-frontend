@@ -2,7 +2,7 @@
 
 import { Chess, Color, PieceSymbol, Square } from "chess.js";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 
 export default function ChessBoard({
@@ -38,133 +38,151 @@ export default function ChessBoard({
 
   const isSelected = (square: Square | undefined) => from === square;
 
-  const handleClick = (toSquare: Square) => {
-    if (chess.turn() !== myColor) return;
-
-    if (!from) {
-      setFrom(toSquare);
-    } else {
-      const piece = chess.get(from);
-      const isPawn = piece?.type === "p";
-      const isPromotionRank =
-        (piece?.color === "w" && toSquare[1] === "8") || (piece?.color === "b" && toSquare[1] === "1");
-
-      if (isPawn && isPromotionRank) {
-        setPromotion({ from, to: toSquare });
-      } else {
-        socket.send(
-          JSON.stringify({
-            type: "move",
-            payload: { move: { from, to: toSquare }, id },
-          })
-        );
+  const handleClick = useCallback(
+    (toSquare: Square) => {
+      if (chess.turn() !== myColor) {
         setFrom(null);
+        return;
       }
-    }
-  };
 
-  const getSquareCoordinate = (rowIndex: number, colIndex: number) => {
-    if (myColor === "w") {
-      return `${String.fromCharCode(97 + colIndex)}${8 - rowIndex}` as Square;
-    } else {
-      return `${String.fromCharCode(97 + colIndex)}${rowIndex + 1}` as Square;
-    }
-  };
+      if (!from) {
+        const clickedPiece = chess.get(toSquare);
+        if (clickedPiece && clickedPiece.color === myColor) {
+          setFrom(toSquare);
+        } else {
+          setFrom(null);
+        }
+      } else {
+        const piece = chess.get(from);
+        const isPawn = piece?.type === "p";
+        const isPromotionRank =
+          (piece?.color === "w" && toSquare[1] === "8") ||
+          (piece?.color === "b" && toSquare[1] === "1");
 
-  const isLightSquare = (rowIndex: number, colIndex: number) => {
-    if(myColor === "w")return (rowIndex + colIndex) % 2 === 0;
-    else return(rowIndex + colIndex) % 2 === 1;
-  };
+        if (isPawn && isPromotionRank) {
+          setPromotion({ from, to: toSquare });
+        } else {
+          socket.send(
+            JSON.stringify({
+              type: "move",
+              payload: { move: { from, to: toSquare }, id },
+            })
+          );
+          setFrom(null);
+        }
+      }
+    },
+    [chess, myColor, from, socket, id]
+  );
+
+  const checkSound = useMemo(() => (typeof Audio !== "undefined" ? new Audio("/Check.mp3") : null), []);
 
   useEffect(() => {
+    if (chess.isGameOver()) {
+      setKingInCheckSquare(null);
+      return;
+    }
+
     if (chess.inCheck()) {
       const colorInCheck = chess.turn();
       let kingSquare: Square | null = null;
 
-      // Find the square containing the king of that color
-      board.flat().forEach((square) => {
-        if (square?.type === "k" && square.color === colorInCheck) {
-          kingSquare = square.square;
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const squareContent = board[r][c];
+          if (squareContent?.type === "k" && squareContent.color === colorInCheck) {
+            kingSquare = squareContent.square;
+            break;
+          }
         }
-      });
+        if (kingSquare) break;
+      }
 
       if (kingSquare) {
-        const checkSound = new Audio("/Check.mp3");
-        checkSound.play();
+        checkSound?.play();
         setKingInCheckSquare(kingSquare);
       }
     } else {
       setKingInCheckSquare(null);
     }
-  }, [board, chess]);
+  }, [board, chess, checkSound]);
+
+  const renderedBoard = useMemo(() => {
+    const boardToRender = myColor === "w" ? board : [...board].reverse().map((row) => [...row].reverse());
+
+    return boardToRender.map((row, rowIndex) => (
+      <div key={rowIndex} className="flex">
+        {row.map((square, colIndex) => {
+          const file = myColor === "w" ? String.fromCharCode(97 + colIndex) : String.fromCharCode(104 - colIndex);
+          const rank = myColor === "w" ? 8 - rowIndex : rowIndex + 1;
+          const squareCoordinate = `${file}${rank}` as Square;
+
+          const fileIndex = squareCoordinate.charCodeAt(0) - "a".charCodeAt(0);
+          const rankIndex = parseInt(squareCoordinate[1]) - 1;
+          const isLight = (fileIndex + rankIndex) % 2 !== 0;
+
+          const isBottomRow = rowIndex === 7;
+          const isLeftColumn = colIndex === 0;
+          const isCheckSquare = squareCoordinate === kingInCheckSquare;
+          const labelColorClass = isLight ? "text-green-700" : "text-green-100";
+
+          return (
+            <motion.div
+              layout
+              key={squareCoordinate}
+              onClick={() => handleClick(squareCoordinate)}
+              className={`md:w-14 md:h-14 lg:w-16 lg:h-16 w-12 h-12 transition-colors duration-200
+                ${isLight ? "bg-green-100" : "bg-green-600"}
+                ${isSelected(squareCoordinate) ? "border-3 border-amber-400" : ""}
+                ${isCheckSquare ? "bg-red-500" : ""}
+                relative flex justify-center items-center`}
+            >
+              {square && (
+                <motion.div layoutId={`${square.color}${square.type}-${square.square}`}>
+                  <Image
+                    src={`/${square.color}${square.type}.png`}
+                    alt={`${square.color}${square.type}`}
+                    width={100}
+                    height={100}
+                    className="w-full h-full object-contain"
+                  />
+                </motion.div>
+              )}
+              {isBottomRow && (
+                <p className={`absolute left-1 bottom-0.5 text-xs font-bold select-none ${labelColorClass}`}>
+                  {file}
+                </p>
+              )}
+              {isLeftColumn && (
+                <p className={`absolute left-1 top-0.5 text-xs font-bold select-none ${labelColorClass}`}>
+                  {rank}
+                </p>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+    ));
+  }, [board, myColor, from, kingInCheckSquare, handleClick]);
 
   return (
-    <div className="text-white flex flex-col text-xl rounded-md">
-      {/* Top player clock */}
-      <div className="bg-gray-800 px-4 py-2 text-center flex gap-4 rounded-t-md">
-        <h4>{myColor === "w" ? formatTime(player2Time) : formatTime(player1Time)}</h4>
-        <h4>{myColor === "w" ? String(player2Name) : String(player1Name)}</h4>
+    <div className="text-white flex flex-col text-xl rounded-md overflow-hidden shadow-2xl">
+      <div className="bg-gray-800 px-4 py-2 text-center flex justify-between items-center rounded-t-md">
+        <h4 className="font-semibold">{myColor === "w" ? player2Name : player1Name}</h4>
+        <h4 className="font-mono">{myColor === "w" ? formatTime(player2Time) : formatTime(player1Time)}</h4>
       </div>
 
-      {/* Chess board */}
-      {board.map((row, rowIndex) => (
-        <div key={rowIndex} className="flex">
-          {row.map((square, colIndex) => {
-            const squareCoordinate = getSquareCoordinate(rowIndex, colIndex);
-            const isLight = isLightSquare(rowIndex, colIndex);
-            const isBottomRow = rowIndex === 7;
-            const isLeftColumn = colIndex === 0;
-            const isCheckSquare = squareCoordinate === kingInCheckSquare;
+      <div>{renderedBoard}</div>
 
-            return (
-              <motion.div
-                layout
-                key={colIndex}
-                onClick={() => handleClick(squareCoordinate)}
-                className={`md:w-14 md:h-14 lg:w-16 lg:h-16 w-12 h-12 transition-colors duration-200 ${
-                  isLight ? "bg-green-100" : "bg-green-600"
-                } ${isSelected(square?.square) ? " border-2 border-amber-400" : ""} ${
-                  isCheckSquare ? "bg-red-500" : ""
-                }`}
-              >
-                <div className="relative flex justify-center items-center text-black w-full h-full">
-                  {square && (
-                    <motion.div layoutId={`${square.color}${square.type}-${square.square}`}>
-                      <Image
-                        src={`/${square.color}${square.type}.png`}
-                        alt={`${square.color}${square.type}`}
-                        width={100}
-                        height={100}
-                      />
-                    </motion.div>
-                  )}
-                  {isBottomRow && (
-                    <p className="absolute left-1 bottom-0.5 text-gray-700 text-xs">
-                      {String.fromCharCode(97 + colIndex)}
-                    </p>
-                  )}
-                  {isLeftColumn && (
-                    <p className="absolute left-1 top-0.5 text-gray-700 text-xs">
-                      {myColor === "w" ? 8 - rowIndex : rowIndex + 1}
-                    </p>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      ))}
-
-      {/* Bottom player clock */}
-      <div className="bg-gray-800 px-4 py-2 rounded-b-md text-xl flex gap-4 text-center">
-        <h4>{myColor === "w" ? formatTime(player1Time) : formatTime(player2Time)}</h4>
-        <h4>{myColor === "w" ? String(player1Name) : String(player2Name)}</h4>
+      <div className="bg-gray-800 px-4 py-2 rounded-b-md text-xl flex justify-between items-center">
+        <h4 className="font-semibold">{myColor === "w" ? player1Name : player2Name}</h4>
+        <h4 className="font-mono">{myColor === "w" ? formatTime(player1Time) : formatTime(player2Time)}</h4>
       </div>
 
-      {/* Promotion UI */}
       {promotion && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded-md flex gap-4">
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-gray-700 p-6 rounded-lg shadow-xl flex gap-4 border border-gray-600">
+            <h3 className="text-white text-lg mr-4 self-center">Promote to:</h3>
             {["q", "r", "b", "n"].map((p) => (
               <div
                 key={p}
@@ -181,7 +199,7 @@ export default function ChessBoard({
                   setPromotion(null);
                   setFrom(null);
                 }}
-                className="cursor-pointer hover:scale-110 transition-transform"
+                className="cursor-pointer p-2 rounded-md hover:bg-gray-600 transition-colors duration-200"
               >
                 <Image src={`/${myColor}${p}.png`} alt={p} width={60} height={60} />
               </div>

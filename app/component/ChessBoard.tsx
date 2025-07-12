@@ -185,7 +185,7 @@ export default function ChessBoard({
   }
 
   return (
-    <div className="text-white flex flex-col text-xl rounded-md overflow-hidden shadow-2xl">
+    <div className="text-white flex flex-col text-xl rounded-md shadow-2xl">
       <div className="bg-gray-800 px-4 py-2 text-center flex justify-between items-center rounded-t-md">
         <h4 className="font-semibold">{myColor === "w" ? player2Name : player1Name}</h4>
         <div className="flex gap-4">

@@ -4,6 +4,7 @@ import { Chess, Color, PieceSymbol, Square } from "chess.js";
 import Image from "next/image";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { motion } from "framer-motion";
+import { Equal, Flag } from 'lucide-react';
 
 export default function ChessBoard({
   board,
@@ -165,18 +166,44 @@ export default function ChessBoard({
     ));
   }, [board, myColor, from, kingInCheckSquare, handleClick]);
 
+  const handleResign = () => {
+    socket.send(JSON.stringify({
+        type : "resign",
+        payload:{
+            id : id
+        }
+    }));
+  }
+
+  const handleDraw = () => {
+    socket.send(JSON.stringify({
+        type : "draw",
+        payload:{
+            id : id
+        }
+    }));
+  }
+
   return (
     <div className="text-white flex flex-col text-xl rounded-md overflow-hidden shadow-2xl">
       <div className="bg-gray-800 px-4 py-2 text-center flex justify-between items-center rounded-t-md">
         <h4 className="font-semibold">{myColor === "w" ? player2Name : player1Name}</h4>
-        <h4 className="font-mono">{myColor === "w" ? formatTime(player2Time) : formatTime(player1Time)}</h4>
+        <div className="flex gap-4">
+            <h4 className="font-mono">{myColor === "w" ? formatTime(player2Time) : formatTime(player1Time)}</h4>
+        </div>
       </div>
 
       <div>{renderedBoard}</div>
 
       <div className="bg-gray-800 px-4 py-2 rounded-b-md text-xl flex justify-between items-center">
         <h4 className="font-semibold">{myColor === "w" ? player1Name : player2Name}</h4>
-        <h4 className="font-mono">{myColor === "w" ? formatTime(player1Time) : formatTime(player2Time)}</h4>
+        <div className="flex gap-4">
+            <div className="flex gap-2 items-center">
+                <Flag  className="cursor-pointer" onClick={handleResign}/>
+                <Equal className="cursor-pointer" onClick={handleDraw}/>
+            </div>
+            <h4 className="font-mono">{myColor === "w" ? formatTime(player1Time) : formatTime(player2Time)}</h4>
+        </div>
       </div>
 
       {promotion && (
